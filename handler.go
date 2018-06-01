@@ -181,7 +181,7 @@ func (handler *Handler) download(response http.ResponseWriter, request *http.Req
 	)
 	response.Header().Set(
 		"Content-Disposition",
-		"attachment; filename="+filepath.Base(string(filename)),
+		"inline; filename="+filepath.Base(string(filename)),
 	)
 	response.Header().Set(
 		"Content-Length",
