@@ -21,7 +21,7 @@ Usage:
   dard --version
 
 Options:
-  -d --dir <path>       Path to storage directory. [default: /srv/darc/]
+  -d --dir <path>       Path to storage directory. [default: /srv/dar/]
   -s --max-size <size>  Max file size. [default: 100mb]
   -t --token <length>   Length of token. [default: 10]
   -l --listen <addr>    Listen specified address. [default: 127.0.0.1:8080]
