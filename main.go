@@ -22,7 +22,7 @@ Usage:
 
 Options:
   -d --dir <path>       Path to storage directory. [default: /srv/dar/]
-  -s --max-size <size>  Max file size. [default: 100mb]
+  -s --max-size <size>  Max file size. [default: 512mb]
   -t --token <length>   Length of token. [default: 10]
   -l --listen <addr>    Listen specified address. [default: 127.0.0.1:8080]
   -h --help             Show this screen.
