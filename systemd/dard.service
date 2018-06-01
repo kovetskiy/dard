@@ -1,0 +1,9 @@
+[Unit]
+Description=http file storage daemon
+
+[Service]
+ExecStart=/usr/bin/dard
+Restart=always
+
+[Install]
+WantedBy=basic.target
