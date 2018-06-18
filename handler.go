@@ -155,11 +155,11 @@ func (handler *Handler) download(response http.ResponseWriter, request *http.Req
 		return
 	}
 
-	contentType, err := ioutil.ReadFile(filepath.Join(dir, "content_type"))
-	if err != nil {
-		internalError(response, err)
-		return
-	}
+	//contentType, err := ioutil.ReadFile(filepath.Join(dir, "content_type"))
+	//if err != nil {
+	//    internalError(response, err)
+	//    return
+	//}
 
 	file, err := os.Open(filepath.Join(dir, "data"))
 	if err != nil {
@@ -174,6 +174,21 @@ func (handler *Handler) download(response http.ResponseWriter, request *http.Req
 		internalError(response, err)
 		return
 	}
+
+	sniff := make([]byte, 512)
+	_, err = file.Read(sniff)
+	if err != nil {
+		internalError(response, err)
+		return
+	}
+
+	_, err = file.Seek(0, 0)
+	if err != nil {
+		internalError(response, err)
+		return
+	}
+
+	contentType := http.DetectContentType(sniff)
 
 	response.Header().Set(
 		"Content-Type",
