@@ -121,6 +121,22 @@ func (handler *Handler) upload(
 		return
 	}
 
+	rawAutoDelete := request.FormValue("auto_delete")
+	if rawAutoDelete == "1" {
+		err = ioutil.WriteFile(
+			filepath.Join(dir, "auto_delete"),
+			[]byte("1"),
+			0644,
+		)
+		if err != nil {
+			internalError(response, karma.Format(
+				err,
+				"unable to write auto_delete file",
+			))
+			return
+		}
+	}
+
 	log.Printf(
 		"%s %s %s",
 		token,
@@ -153,6 +169,26 @@ func (handler *Handler) download(response http.ResponseWriter, request *http.Req
 	if err != nil {
 		internalError(response, err)
 		return
+	}
+
+	autoDelete := false
+
+	_, err = ioutil.ReadFile(filepath.Join(dir, "auto_delete"))
+	if err == nil {
+		autoDelete = true
+	} else if !os.IsNotExist(err) {
+		internalError(response, err)
+		return
+	}
+
+	if autoDelete {
+		defer func() {
+			log.Printf("autoremoving dir: %s", dir)
+			err := os.RemoveAll(dir)
+			if err != nil {
+				log.Println(err)
+			}
+		}()
 	}
 
 	//contentType, err := ioutil.ReadFile(filepath.Join(dir, "content_type"))
