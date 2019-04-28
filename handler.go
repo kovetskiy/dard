@@ -137,6 +137,22 @@ func (handler *Handler) upload(
 		}
 	}
 
+	headerDownload := request.FormValue("header_download")
+	if headerDownload == "1" {
+		err = ioutil.WriteFile(
+			filepath.Join(dir, "header_download"),
+			[]byte("1"),
+			0644,
+		)
+		if err != nil {
+			internalError(response, karma.Format(
+				err,
+				"unable to write header_download file",
+			))
+			return
+		}
+	}
+
 	log.Printf(
 		"%s %s %s",
 		token,
@@ -176,6 +192,16 @@ func (handler *Handler) download(response http.ResponseWriter, request *http.Req
 	_, err = ioutil.ReadFile(filepath.Join(dir, "auto_delete"))
 	if err == nil {
 		autoDelete = true
+	} else if !os.IsNotExist(err) {
+		internalError(response, err)
+		return
+	}
+
+	headerDownload := false
+
+	_, err = ioutil.ReadFile(filepath.Join(dir, "header_download"))
+	if err == nil {
+		headerDownload = true
 	} else if !os.IsNotExist(err) {
 		internalError(response, err)
 		return
@@ -224,15 +250,23 @@ func (handler *Handler) download(response http.ResponseWriter, request *http.Req
 		return
 	}
 
-	contentType := http.DetectContentType(sniff)
+	var contentType string
+	var contentDisposition string
+	if headerDownload {
+		contentType = "application/octet-stream"
+		contentDisposition = "attachment"
+	} else {
+		contentType = http.DetectContentType(sniff)
+		contentDisposition = "inline"
+	}
 
 	response.Header().Set(
 		"Content-Type",
-		string(contentType),
+		contentType,
 	)
 	response.Header().Set(
 		"Content-Disposition",
-		"inline; filename="+filepath.Base(string(filename)),
+		contentDisposition+"; filename="+filepath.Base(string(filename)),
 	)
 	response.Header().Set(
 		"Content-Length",
