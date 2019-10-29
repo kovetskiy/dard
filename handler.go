@@ -187,16 +187,6 @@ func (handler *Handler) download(response http.ResponseWriter, request *http.Req
 		return
 	}
 
-	autoDelete := false
-
-	_, err = ioutil.ReadFile(filepath.Join(dir, "auto_delete"))
-	if err == nil {
-		autoDelete = true
-	} else if !os.IsNotExist(err) {
-		internalError(response, err)
-		return
-	}
-
 	headerDownload := false
 
 	_, err = ioutil.ReadFile(filepath.Join(dir, "header_download"))
@@ -207,7 +197,25 @@ func (handler *Handler) download(response http.ResponseWriter, request *http.Req
 		return
 	}
 
+	autoDelete := false
+
+	_, err = ioutil.ReadFile(filepath.Join(dir, "auto_delete"))
+	if err == nil {
+		autoDelete = true
+	} else if !os.IsNotExist(err) {
+		internalError(response, err)
+		return
+	}
+
 	if autoDelete {
+		if strings.Contains(
+			strings.ToLower(request.Header.Get("User-Agent")),
+			"bot",
+		) {
+			response.WriteHeader(http.StatusFound)
+			return
+		}
+
 		defer func() {
 			log.Printf("autoremoving dir: %s", dir)
 			err := os.RemoveAll(dir)
@@ -216,12 +224,6 @@ func (handler *Handler) download(response http.ResponseWriter, request *http.Req
 			}
 		}()
 	}
-
-	//contentType, err := ioutil.ReadFile(filepath.Join(dir, "content_type"))
-	//if err != nil {
-	//    internalError(response, err)
-	//    return
-	//}
 
 	file, err := os.Open(filepath.Join(dir, "data"))
 	if err != nil {
